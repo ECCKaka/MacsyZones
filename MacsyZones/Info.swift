@@ -15,6 +15,7 @@ import SwiftUI
 struct AccessibilityPermissionView: View {
     var onRestart: (() -> Void)?
     var onCancel: (() -> Void)?
+    var onOpenSettings: (() -> Void)?
     
     @State private var expandedImage: String? = nil
     
@@ -101,6 +102,22 @@ struct AccessibilityPermissionView: View {
                     
                     Spacer().frame(height: 26)
                     
+                    Button(action: {
+                        onOpenSettings?()
+                    }) {
+                        HStack {
+                            Image(systemName: "gear")
+                            Text("Open Accessibility Settings")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    
                     HStack(spacing: 12) {
                         Button(action: {
                             onCancel?()
@@ -120,8 +137,7 @@ struct AccessibilityPermissionView: View {
                                 .fontWeight(.bold)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
+                                .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
                         }
                         .buttonStyle(.plain)
@@ -129,7 +145,7 @@ struct AccessibilityPermissionView: View {
                     
                     Spacer().frame(height: 26)
                     
-                    Text("After enabling accessibility permissions, restart MacsyZones to continue.")
+                    Text("After enabling MacsyZones in Accessibility, the app will restart automatically.")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -221,6 +237,11 @@ class AccessibilityDialog {
             onCancel: {
                 self.dismiss()
                 exit(0)
+            },
+            onOpenSettings: {
+                NSWorkspace.shared.open(
+                    URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+                )
             }
         )
         panel.contentView = NSHostingView(rootView: view)

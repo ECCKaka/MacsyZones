@@ -22,7 +22,6 @@ class MacsyReady: ObservableObject {
 
 let macsyReady = MacsyReady()
 let macsyProLock = ProLock()
-let donationReminder = DonationReminder()
 let appUpdater = AppUpdater()
 
 @available(macOS 12.0, *)
@@ -516,15 +515,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, Sen
     }
     
     func checkAccessibilityPermission() {
-        let options: [String: Any] = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-        hasAccessibilityPermission = AXIsProcessTrustedWithOptions(options as CFDictionary)
+        // Use AXIsProcessTrusted() without the prompt flag so macOS does NOT show the
+        // system-level dialog on every launch. The custom AccessibilityDialog guides the
+        // user instead. On macOS 26+, TCC ties permissions to the binary's code signature;
+        // each new debug build has a different signature, which is why the OS dialog kept
+        // re-appearing even though the toggle appeared ON (it was for a previous build).
+        hasAccessibilityPermission = AXIsProcessTrusted()
     }
     
     func requestAccessibilityPermissions() {
         if !hasAccessibilityPermission {
             showAccessibilityPermissionPopover()
+            startAccessibilityPermissionMonitor()
         } else {
             debugLog("Accessibility permissions granted.")
+        }
+    }
+    
+    func startAccessibilityPermissionMonitor() {
+        DispatchQueue.main.async {
+            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                if AXIsProcessTrusted() {
+                    timer.invalidate()
+                    hasAccessibilityPermission = true
+                    debugLog("Accessibility permission detected — restarting app.")
+                    accessibilityDialog?.dismiss()
+                    restartApp()
+                }
+            }
         }
     }
     

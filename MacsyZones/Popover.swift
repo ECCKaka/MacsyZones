@@ -901,8 +901,6 @@ struct Main: View {
                         MacsyZones helps you organize your windows efficiently.
                         
                         Version: \(appVersion) (Build: \(appBuild))
-                    
-                        \(!proLock.isPro ? "Please buy MacsyZones to support me. 🥳": "Thank you for your support. 🥳")
                         \(licenseInfo)
                     """),
                     primaryButton: .default(Text("Visit Website")) {
